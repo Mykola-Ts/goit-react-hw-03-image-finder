@@ -16,3 +16,9 @@ export const Modal = styled(ReactModal)`
     max-width: calc(100vw - 124px);
   }
 `;
+
+export const EndGalleryNotification = styled.p`
+  padding: 12px;
+
+  text-align: center;
+`;

@@ -9,7 +9,12 @@ import { ImageGallery } from './ImageGallery/ImageGallery';
 import { LoadMoreButton } from './LoadMoreButton/LoadMoreButton';
 import { Loader } from './Loader/Loader';
 import { ModalImage, customStyles } from './Modal/Modal';
-import { Modal } from './App.styled';
+import { EndGalleryNotification, Modal } from './App.styled';
+import {
+  toastContainerStyle,
+  toastOptions,
+  toastWarningOptions,
+} from './helpers/helpers';
 
 ReactModal.setAppElement('#root');
 
@@ -25,6 +30,13 @@ export class App extends Component {
   };
 
   onSearch = query => {
+    if (!query.length) {
+      toast.remove();
+      toast('Input field is empty. Enter search query!', toastWarningOptions);
+
+      return;
+    }
+
     this.setState({
       query: `${Date.now()}/${query}`,
       images: [],
@@ -65,6 +77,7 @@ export class App extends Component {
       const data = await searchImagesByQuery(searchQuery, state.page);
 
       if (!data.hits.length) {
+        toast.remove();
         toast.error(
           'Sorry, there are no images matching your search query. Please try again.'
         );
@@ -77,6 +90,7 @@ export class App extends Component {
       }));
 
       if (state.page === 1) {
+        toast.remove();
         toast.success(`Hooray! We found ${data.totalHits} images.`);
       }
 
@@ -86,6 +100,7 @@ export class App extends Component {
         this.setState({ isLastPage: true });
       }
     } catch (err) {
+      toast.remove();
       toast.error('Oops, something went wrong. Try reloading the page.');
     } finally {
       this.setState({ isLoading: false });
@@ -109,6 +124,12 @@ export class App extends Component {
           <ImageGallery images={images} onOpenModal={onOpenModal} />
         )}
 
+        {isLastPage && (
+          <EndGalleryNotification>
+            We're sorry, but you've reached the end of search results.
+          </EndGalleryNotification>
+        )}
+
         {images.length > 0 && !isLastPage && !isLoading && (
           <LoadMoreButton onLoadMore={onLoadMore} textButton="Load more" />
         )}
@@ -127,9 +148,8 @@ export class App extends Component {
 
         <Toaster
           position="top-right"
-          containerStyle={{
-            top: 90,
-          }}
+          containerStyle={toastContainerStyle}
+          toastOptions={toastOptions}
         />
 
         <GlobalStyle />

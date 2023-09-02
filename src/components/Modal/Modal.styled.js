@@ -4,6 +4,8 @@ import { CgClose } from 'react-icons/cg';
 export const Wrapper = styled.div`
   max-width: 100%;
   max-height: 100%;
+
+  background-color: var(--white-color);
 `;
 
 export const CloseIcon = styled(CgClose)`
