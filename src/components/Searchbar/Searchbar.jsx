@@ -7,8 +7,9 @@ import {
   InputIcon,
   InputLabel,
 } from './Searchbar.styled';
+import { HomeButton } from 'components/HomeBtn/HomeBtn';
 
-export const Searchbar = ({ onSearch }) => {
+export const Searchbar = ({ onSearch, onHomeBtn }) => {
   const onSubmit = evt => {
     evt.preventDefault();
 
@@ -20,6 +21,8 @@ export const Searchbar = ({ onSearch }) => {
   return (
     <>
       <SearchbarHeader>
+        <HomeButton onHomeBtn={onHomeBtn} />
+
         <SearchbarForm onSubmit={onSubmit}>
           <InputLabel>
             <QueryInput
@@ -40,4 +43,5 @@ export const Searchbar = ({ onSearch }) => {
 
 Searchbar.propTypes = {
   onSearch: PropTypes.func.isRequired,
+  onHomeBtn: PropTypes.func.isRequired,
 };

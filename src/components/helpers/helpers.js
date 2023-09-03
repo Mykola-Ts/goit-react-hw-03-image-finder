@@ -1,7 +1,6 @@
 import { IoWarningOutline } from 'react-icons/io5';
 
 export const toastOptions = {
-  duration: 5000,
   success: {
     style: {
       color: 'var(--white-color)',

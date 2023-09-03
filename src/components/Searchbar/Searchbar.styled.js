@@ -12,7 +12,6 @@ export const SearchbarHeader = styled.header`
   align-items: center;
 
   width: 100%;
-  padding: 16px 0;
 
   background-color: var(--primary-color-with-transparency);
 `;

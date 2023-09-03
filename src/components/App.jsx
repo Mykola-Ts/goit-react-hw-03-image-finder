@@ -1,7 +1,11 @@
 import { Component } from 'react';
 import ReactModal from 'react-modal';
 import toast, { Toaster } from 'react-hot-toast';
-import { searchImagesByQuery, parametersRequest } from './services/api';
+import {
+  searchImagesByQuery,
+  parametersRequest,
+  fetchImagesByCategory,
+} from './services/api';
 import { GlobalStyle } from './GlobalStyle';
 import { Layout } from './Layout';
 import { Searchbar } from './Searchbar/Searchbar';
@@ -15,6 +19,9 @@ import {
   toastOptions,
   toastWarningOptions,
 } from './helpers/helpers';
+import { Categories } from './Categories/Categories';
+import { Error } from './Error/Error';
+import { ToTopButton } from './ToTopBtn/ToTopBtn';
 
 ReactModal.setAppElement('#root');
 
@@ -22,11 +29,13 @@ export class App extends Component {
   state = {
     query: '',
     images: [],
+    categories: [],
     page: 1,
     isLoading: false,
     isLastPage: false,
     isOpenModal: false,
     openImage: { src: null, alt: null },
+    isError: false,
   };
 
   onSearch = query => {
@@ -43,6 +52,10 @@ export class App extends Component {
       page: 1,
       isLastPage: false,
     });
+  };
+
+  onSelectCategory = category => {
+    this.setState({ query: `${Date.now()}/${category}`, images: [] });
   };
 
   onLoadMore = () => {
@@ -63,10 +76,47 @@ export class App extends Component {
     document.body.style.overflow = '';
   };
 
+  onHomeBtn = () => {
+    this.setState({
+      query: '',
+      images: [],
+      page: 1,
+      isLastPage: false,
+      openImage: { src: null, alt: null },
+      isError: false,
+    });
+  };
+
+  onBackToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth',
+    });
+  };
+
+  async componentDidMount() {
+    this.setState({ isLoading: true });
+
+    try {
+      const data = await fetchImagesByCategory();
+
+      this.setState({ categories: data });
+    } catch (err) {
+      toast.remove();
+      toast.error('Oops, something went wrong. Try reloading the page.');
+      this.setState({ isError: true });
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  }
+
   async componentDidUpdate(prevProps, prevState) {
     const { state } = this;
 
-    if (prevState.query === state.query && prevState.page === state.page) {
+    if (
+      (prevState.query === state.query && prevState.page === state.page) ||
+      !state.query
+    ) {
       return;
     }
 
@@ -81,6 +131,8 @@ export class App extends Component {
         toast.error(
           'Sorry, there are no images matching your search query. Please try again.'
         );
+
+        this.setState({ query: '' });
 
         return;
       }
@@ -109,16 +161,37 @@ export class App extends Component {
 
   render() {
     const {
-      state: { images, isLastPage, isLoading, isOpenModal, openImage },
+      state: {
+        query,
+        images,
+        isLastPage,
+        isLoading,
+        isOpenModal,
+        openImage,
+        categories,
+        isError,
+      },
       onSearch,
       onLoadMore,
       onOpenModal,
       onCloseModal,
+      onSelectCategory,
+      onHomeBtn,
+      onBackToTop,
     } = this;
 
     return (
       <Layout>
-        {!isOpenModal && <Searchbar onSearch={onSearch} />}
+        {!isOpenModal && (
+          <Searchbar onSearch={onSearch} onHomeBtn={onHomeBtn} />
+        )}
+
+        {!query && !isError && !isLoading && (
+          <Categories
+            categories={categories}
+            onSelectCategory={onSelectCategory}
+          />
+        )}
 
         {images.length > 0 && (
           <ImageGallery images={images} onOpenModal={onOpenModal} />
@@ -145,6 +218,10 @@ export class App extends Component {
         >
           <ModalImage closeModal={onCloseModal} openImage={openImage} />
         </Modal>
+
+        {query && <ToTopButton onBackToTop={onBackToTop} />}
+
+        {isError && <Error />}
 
         <Toaster
           position="top-right"
