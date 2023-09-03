@@ -59,14 +59,14 @@ export const Card = styled.li`
 export const ImgCard = styled.img`
   flex-grow: 0;
 
-  height: 250px;
+  height: 200px;
 
   @media screen and (min-width: 768px) {
     height: 160px;
   }
 
   @media screen and (min-width: 1400px) {
-    height: 300px;
+    height: 240px;
   }
 `;
 
