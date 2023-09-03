@@ -53,6 +53,7 @@ export const GlobalStyle = createGlobalStyle`
   --text-black-color: #111;
   --primary-color: rgb(63, 178, 255);
   --primary-color-with-transparency: rgba(63, 178, 255, 0.8);
+  --primary-color-transparent: rgba(63, 178, 255, 0.2);
   --white-color: #fff;
   --white-color-with-transparency: rgba(255, 255, 255, 0.8);
   --modal-backdrop-color: rgba(17, 17, 17, 0.6);

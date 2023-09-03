@@ -35,6 +35,7 @@ export const Card = styled.li`
   width: 100%;
   border-radius: 12px;
 
+  background-color: var(--primary-color-transparent);
   box-shadow: var(--box-shadow);
   overflow: hidden;
   cursor: pointer;
@@ -48,31 +49,29 @@ export const Card = styled.li`
 
   @media screen and (min-width: 768px) {
     width: calc((100% - 24px * 2) / 3);
-    height: 200px;
   }
 
   @media screen and (min-width: 1400px) {
     width: calc((100% - 24px * 2) / 3);
-    // height: 250px;
   }
 `;
 
 export const ImgCard = styled.img`
   flex-grow: 0;
 
-  max-height: 250px;
+  height: 250px;
 
   @media screen and (min-width: 768px) {
-    height: 250px;
+    height: 160px;
   }
 
   @media screen and (min-width: 1400px) {
-    height: 250px;
+    height: 300px;
   }
 `;
 
 export const TitleCard = styled.h3`
-  padding: 8px;
+  padding: 12px;
 
   text-align: center;
 `;
