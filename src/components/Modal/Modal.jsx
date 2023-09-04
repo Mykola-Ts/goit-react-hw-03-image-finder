@@ -1,7 +1,14 @@
+import ReactModal from 'react-modal';
 import PropTypes from 'prop-types';
-import { Wrapper, CloseBtn, Image, CloseIcon } from './Modal.styled';
+import {
+  Wrapper,
+  CloseBtn,
+  Image,
+  CloseIcon,
+  ModalImage,
+} from './Modal.styled';
 
-export const customStyles = {
+const customStyles = {
   overlay: {
     position: 'fixed',
     top: '0',
@@ -16,18 +23,29 @@ export const customStyles = {
   },
 };
 
-export const ModalImage = ({ closeModal, openImage: { src, alt } }) => {
+ReactModal.setAppElement('#root');
+
+export const Modal = ({ isOpen, closeModal, openImage: { src, alt } }) => {
   return (
-    <Wrapper>
-      <CloseBtn type="button" onClick={closeModal}>
-        <CloseIcon />
-      </CloseBtn>
-      <Image src={src} alt={alt} width={1280} />
-    </Wrapper>
+    <ModalImage
+      isOpen={isOpen}
+      onRequestClose={closeModal}
+      shouldCloseOnOverlayClick={true}
+      shouldCloseOnEsc={true}
+      style={customStyles}
+    >
+      <Wrapper>
+        <CloseBtn type="button" onClick={closeModal}>
+          <CloseIcon />
+        </CloseBtn>
+        <Image src={src} alt={alt} width={1280} />
+      </Wrapper>
+    </ModalImage>
   );
 };
 
-ModalImage.propTypes = {
+Modal.propTypes = {
+  isOpen: PropTypes.bool.isRequired,
   closeModal: PropTypes.func.isRequired,
   openImage: PropTypes.object.isRequired,
 };

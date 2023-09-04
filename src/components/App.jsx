@@ -1,6 +1,6 @@
 import { Component } from 'react';
-import ReactModal from 'react-modal';
 import toast, { Toaster } from 'react-hot-toast';
+import { nanoid } from 'nanoid';
 import {
   searchImagesByQuery,
   parametersRequest,
@@ -12,8 +12,8 @@ import { Searchbar } from './Searchbar/Searchbar';
 import { ImageGallery } from './ImageGallery/ImageGallery';
 import { LoadMoreButton } from './LoadMoreButton/LoadMoreButton';
 import { Loader } from './Loader/Loader';
-import { ModalImage, customStyles } from './Modal/Modal';
-import { EndGalleryNotification, Modal } from './App.styled';
+import { Modal } from './Modal/Modal';
+import { EndGalleryNotification } from './App.styled';
 import {
   toastContainerStyle,
   toastOptions,
@@ -23,11 +23,10 @@ import { Categories } from './Categories/Categories';
 import { Error } from './Error/Error';
 import { ToTopButton } from './ToTopBtn/ToTopBtn';
 
-ReactModal.setAppElement('#root');
-
 export class App extends Component {
   state = {
     query: '',
+    randomID: '',
     images: [],
     categories: [],
     page: 1,
@@ -38,6 +37,69 @@ export class App extends Component {
     isError: false,
   };
 
+  async componentDidMount() {
+    this.setState({ isLoading: true });
+
+    try {
+      const data = await fetchImagesByCategory();
+
+      this.setState({ categories: data });
+    } catch (err) {
+      toast.remove();
+      toast.error('Oops, something went wrong. Try reloading the page.');
+
+      this.setState({ isError: true });
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  }
+
+  async componentDidUpdate(prevProps, prevState) {
+    const { query, page, randomID } = this.state;
+
+    if (
+      (prevState.query === query &&
+        prevState.page === page &&
+        prevState.randomID === randomID) ||
+      !query
+    ) {
+      return;
+    }
+
+    this.setState({ isLoading: true });
+
+    try {
+      const data = await searchImagesByQuery(query, page);
+
+      if (!data.hits.length) {
+        toast.remove();
+        toast.error(
+          'Sorry, there are no images matching your search query. Please try again.'
+        );
+
+        this.setState({ query: '' });
+
+        return;
+      }
+
+      this.setState(prevState => ({
+        images: [...prevState.images, ...data.hits],
+        isLastPage:
+          page >= Math.ceil(data.totalHits / parametersRequest.perPage),
+      }));
+
+      if (page === 1) {
+        toast.remove();
+        toast.success(`Hooray! We found ${data.totalHits} images.`);
+      }
+    } catch (err) {
+      toast.remove();
+      toast.error('Oops, something went wrong. Try reloading the page.');
+    } finally {
+      this.setState({ isLoading: false });
+    }
+  }
+
   onSearch = query => {
     if (!query.length) {
       toast.remove();
@@ -47,7 +109,8 @@ export class App extends Component {
     }
 
     this.setState({
-      query: `${Date.now()}/${query}`,
+      query,
+      randomID: nanoid(),
       images: [],
       page: 1,
       isLastPage: false,
@@ -55,7 +118,7 @@ export class App extends Component {
   };
 
   onSelectCategory = category => {
-    this.setState({ query: `${Date.now()}/${category}`, images: [] });
+    this.setState({ query: category, randomID: nanoid(), images: [], page: 1 });
   };
 
   onLoadMore = () => {
@@ -79,6 +142,7 @@ export class App extends Component {
   onHomeBtn = () => {
     this.setState({
       query: '',
+      randomID: '',
       images: [],
       page: 1,
       isLastPage: false,
@@ -93,71 +157,6 @@ export class App extends Component {
       behavior: 'smooth',
     });
   };
-
-  async componentDidMount() {
-    this.setState({ isLoading: true });
-
-    try {
-      const data = await fetchImagesByCategory();
-
-      this.setState({ categories: data });
-    } catch (err) {
-      toast.remove();
-      toast.error('Oops, something went wrong. Try reloading the page.');
-      this.setState({ isError: true });
-    } finally {
-      this.setState({ isLoading: false });
-    }
-  }
-
-  async componentDidUpdate(prevProps, prevState) {
-    const { state } = this;
-
-    if (
-      (prevState.query === state.query && prevState.page === state.page) ||
-      !state.query
-    ) {
-      return;
-    }
-
-    this.setState({ isLoading: true });
-
-    try {
-      const searchQuery = state.query.split('/')[1];
-      const data = await searchImagesByQuery(searchQuery, state.page);
-
-      if (!data.hits.length) {
-        toast.remove();
-        toast.error(
-          'Sorry, there are no images matching your search query. Please try again.'
-        );
-
-        this.setState({ query: '' });
-
-        return;
-      }
-
-      this.setState(prevState => ({
-        images: [...prevState.images, ...data.hits],
-      }));
-
-      if (state.page === 1) {
-        toast.remove();
-        toast.success(`Hooray! We found ${data.totalHits} images.`);
-      }
-
-      const totalPage = Math.ceil(data.totalHits / parametersRequest.perPage);
-
-      if (totalPage <= state.page) {
-        this.setState({ isLastPage: true });
-      }
-    } catch (err) {
-      toast.remove();
-      toast.error('Oops, something went wrong. Try reloading the page.');
-    } finally {
-      this.setState({ isLoading: false });
-    }
-  }
 
   render() {
     const {
@@ -211,13 +210,9 @@ export class App extends Component {
 
         <Modal
           isOpen={isOpenModal}
-          onRequestClose={onCloseModal}
-          shouldCloseOnOverlayClick={true}
-          shouldCloseOnEsc={true}
-          style={customStyles}
-        >
-          <ModalImage closeModal={onCloseModal} openImage={openImage} />
-        </Modal>
+          closeModal={onCloseModal}
+          openImage={openImage}
+        />
 
         {query && <ToTopButton onBackToTop={onBackToTop} />}
 
